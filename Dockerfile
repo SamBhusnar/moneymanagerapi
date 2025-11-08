@@ -13,4 +13,4 @@ COPY target/moneymanager.jar moneymanger-v1.0.jar
 EXPOSE 9090
 
 # Start the application
-ENTRYPOINT ["java", "-jar", "/app/moneymanger-v1.0.jar"]
+ENTRYPOINT ["java", "-jar", "moneymanger-v1.0.jar"]
