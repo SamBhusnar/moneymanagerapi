@@ -1,16 +1,26 @@
-# Use Amazon Corretto 21 JDK as base image
-FROM amazoncorretto:21
+# ---------- Stage 1: Build the Spring Boot application ----------
+FROM maven:3.9.6-amazoncorretto-21 AS build
 
-# Set working directory inside container
+# Set working directory inside the container
 WORKDIR /app
 
-# Copy your built JAR file into container
-COPY target/moneymanager.jar moneymanger-v1.0.jar
+# Copy pom.xml and download dependencies (cached layer)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-# Activate docker profile (optional, can override at runtime)
+# Copy the entire project and build it
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Expose the app port
+# ---------- Stage 2: Run the application ----------
+FROM amazoncorretto:21
+WORKDIR /app
+
+# Copy the built jar from the previous stage
+COPY --from=build /app/target/*.jar moneymanager-v1.0.jar
+
+# Expose the app port (make sure same as in your Spring Boot config)
 EXPOSE 9090
 
-# Start the application
-ENTRYPOINT ["java", "-jar", "moneymanger-v1.0.jar"]
+# Run the application
+ENTRYPOINT ["java", "-jar", "moneymanager-v1.0.jar"]
